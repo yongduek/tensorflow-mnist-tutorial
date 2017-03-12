@@ -39,7 +39,7 @@ def tf_format_mnist_images(X, Y, Y_, n=100, lines=10):
     correct_prediction = tf.equal(tf.argmax(Y,1), tf.argmax(Y_,1))
     correctly_recognised_indices = tf.squeeze(tf.where(correct_prediction), [1])  # indices of correctly recognised images
     incorrectly_recognised_indices = tf.squeeze(tf.where(tf.logical_not(correct_prediction)), [1]) # indices of incorrectly recognised images
-    everything_incorrect_first = tf.concat([incorrectly_recognised_indices, correctly_recognised_indices], 0) # images reordered with indeces of unrecognised images first
+    everything_incorrect_first = tf.concat_v2([incorrectly_recognised_indices, correctly_recognised_indices], 0) # images reordered with indeces of unrecognised images first
     everything_incorrect_first = tf.slice(everything_incorrect_first, [0], [n]) # compute first 100 only - no space to display more anyway
     # compute n=100 digits to display only
     Xs = tf.gather(X, everything_incorrect_first)
@@ -55,15 +55,15 @@ def tf_format_mnist_images(X, Y, Y_, n=100, lines=10):
     superimposed_digits = tf.where(correct_prediction_s, tf.zeros_like(correct_tags),correct_tags+computed_tags) # only pring the correct and computed digits on unrecognised images
     correct_bkg   = tf.reshape(tf.tile([1.3,1.3,1.3], [28*28]), [1, 28,28,3]) # white background
     incorrect_bkg = tf.reshape(tf.tile([1.3,1.0,1.0], [28*28]), [1, 28,28,3]) # red background
-    recognised_bkg = tf.gather(tf.concat([incorrect_bkg, correct_bkg], 0), tf.cast(correct_prediction_s, tf.int32)) # pick either the red or the white background depending on recognised status
+    recognised_bkg = tf.gather(tf.concat_v2([incorrect_bkg, correct_bkg], 0), tf.cast(correct_prediction_s, tf.int32)) # pick either the red or the white background depending on recognised status
 
     I = tf.image.grayscale_to_rgb(Xs)
     I = ((1-(I+superimposed_digits))*recognised_bkg)/1.3 # stencil extra data on top of images and reorder them unrecognised first
     I = tf.image.convert_image_dtype(I, tf.uint8, saturate=True)
     Islices = [] # 100 images => 10x10 image block
     for imslice in range(lines):
-        Islices.append(tf.concat(tf.unstack(tf.slice(I, [imslice*n//lines,0,0,0], [n//lines,28,28,3])), 1))
-    I = tf.concat(Islices, 0)
+        Islices.append(tf.concat_v2(tf.unstack(tf.slice(I, [imslice*n//lines,0,0,0], [n//lines,28,28,3])), 1))
+    I = tf.concat_v2(Islices, 0)
     return I
 
 # n = HISTOGRAM_BUCKETS (global)

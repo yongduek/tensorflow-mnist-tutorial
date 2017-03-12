@@ -16,6 +16,7 @@
 import tensorflow as tf
 import tensorflowvisu
 from tensorflow.contrib.learn.python.learn.datasets.mnist import read_data_sets
+
 tf.set_random_seed(0)
 
 # neural network with 1 layer of 10 softmax neurons
@@ -39,7 +40,7 @@ tf.set_random_seed(0)
 mnist = read_data_sets("data", one_hot=True, reshape=False, validation_size=0)
 
 # input X: 28x28 grayscale images, the first dimension (None) will index the images in the mini-batch
-X = tf.placeholder(tf.float32, [None, 28, 28, 1])
+X = tf.placeholder(tf.float32, [None, 28, 28, 1]) # (batch, row, column, color)
 # correct answers will go here
 Y_ = tf.placeholder(tf.float32, [None, 10])
 # weights W[784, 10]   784=28*28
@@ -66,13 +67,14 @@ cross_entropy = -tf.reduce_mean(Y_ * tf.log(Y)) * 1000.0  # normalized for batch
                                                           # *10 because  "mean" included an unwanted division by 10
 
 # accuracy of the trained model, between 0 (worst) and 1 (best)
-correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
+correct_prediction = tf.equal(tf.argmax(Y, axis=1), tf.argmax(Y_, axis=1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # training, learning rate = 0.005
 train_step = tf.train.GradientDescentOptimizer(0.005).minimize(cross_entropy)
 
 # matplotlib visualisation
+#    -1 in the shape definition means "the only possible dimension that will preserve the number of elements"
 allweights = tf.reshape(W, [-1])
 allbiases = tf.reshape(b, [-1])
 I = tensorflowvisu.tf_format_mnist_images(X, Y, Y_)  # assembles 10x10 images by default
@@ -93,7 +95,8 @@ def training_step(i, update_test_data, update_train_data):
 
     # compute training values for visualisation
     if update_train_data:
-        a, c, im, w, b = sess.run([accuracy, cross_entropy, I, allweights, allbiases], feed_dict={X: batch_X, Y_: batch_Y})
+        a, c, im, w, b = sess.run([accuracy, cross_entropy, I, allweights, allbiases],
+                                  feed_dict={X: batch_X, Y_: batch_Y})
         datavis.append_training_curves_data(i, a, c)
         datavis.append_data_histograms(i, w, b)
         datavis.update_image1(im)

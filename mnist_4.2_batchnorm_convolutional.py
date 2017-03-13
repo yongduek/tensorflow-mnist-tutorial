@@ -50,6 +50,14 @@ iter = tf.placeholder(tf.int32)
 pkeep = tf.placeholder(tf.float32)
 pkeep_conv = tf.placeholder(tf.float32)
 
+'''
+tf.nn.batch_normalization(x, mean, variance, offset, scale, variance_epsilon, name=None)
+    Batch normalization.
+    As described in http://arxiv.org/abs/1502.03167. Normalizes a tensor by mean and variance,
+    and applies (optionally) a scale to it, as well as an offset
+
+
+'''
 def batchnorm(Ylogits, is_test, iteration, offset, convolutional=False):
     exp_moving_avg = tf.train.ExponentialMovingAverage(0.999, iteration) # adding the iteration prevents from averaging across non-existing iterations
     bnepsilon = 1e-5
@@ -132,9 +140,9 @@ correct_prediction = tf.equal(tf.argmax(Y, 1), tf.argmax(Y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
 # matplotlib visualisation
-allweights = tf.concat([tf.reshape(W1, [-1]), tf.reshape(W2, [-1]), tf.reshape(W3, [-1]), tf.reshape(W4, [-1]), tf.reshape(W5, [-1])], 0)
-allbiases  = tf.concat([tf.reshape(B1, [-1]), tf.reshape(B2, [-1]), tf.reshape(B3, [-1]), tf.reshape(B4, [-1]), tf.reshape(B5, [-1])], 0)
-conv_activations = tf.concat([tf.reshape(tf.reduce_max(Y1r, [0]), [-1]), tf.reshape(tf.reduce_max(Y2r, [0]), [-1]), tf.reshape(tf.reduce_max(Y3r, [0]), [-1])], 0)
+allweights = tf.concat_v2([tf.reshape(W1, [-1]), tf.reshape(W2, [-1]), tf.reshape(W3, [-1]), tf.reshape(W4, [-1]), tf.reshape(W5, [-1])], 0)
+allbiases  = tf.concat_v2([tf.reshape(B1, [-1]), tf.reshape(B2, [-1]), tf.reshape(B3, [-1]), tf.reshape(B4, [-1]), tf.reshape(B5, [-1])], 0)
+conv_activations = tf.concat_v2([tf.reshape(tf.reduce_max(Y1r, [0]), [-1]), tf.reshape(tf.reduce_max(Y2r, [0]), [-1]), tf.reshape(tf.reduce_max(Y3r, [0]), [-1])], 0)
 dense_activations = tf.reduce_max(Y4r, [0])
 I = tensorflowvisu.tf_format_mnist_images(X, Y, Y_)
 It = tensorflowvisu.tf_format_mnist_images(X, Y, Y_, 1000, lines=25)
